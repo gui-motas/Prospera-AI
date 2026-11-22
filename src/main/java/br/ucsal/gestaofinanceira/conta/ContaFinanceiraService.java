@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -39,8 +40,9 @@ public class ContaFinanceiraService {
     public List<ContaResponse> listar() {
         UUID usuarioId = usuarioAutenticado.obterId();
         Map<UUID, BigDecimal> resultados = servicoFinanceiro.calcularResultadoPorConta(usuarioId);
+        Map<UUID, Long> quantidades = contarMovimentacoesPorConta(usuarioId);
         return contaRepository.findByUsuarioIdOrderByNomeAsc(usuarioId).stream()
-                .map(c -> paraResposta(c, resultados.get(c.getId())))
+                .map(c -> paraResposta(c, resultados.get(c.getId()), quantidades.getOrDefault(c.getId(), 0L)))
                 .toList();
     }
 
@@ -52,7 +54,7 @@ public class ContaFinanceiraService {
         }
         ContaFinanceira conta = contaRepository.save(
                 new ContaFinanceira(usuario, req.nome(), req.tipo(), req.saldoInicial()));
-        return paraResposta(conta, BigDecimal.ZERO);
+        return paraResposta(conta, BigDecimal.ZERO, 0L);
     }
 
     @Transactional
@@ -64,7 +66,8 @@ public class ContaFinanceiraService {
             throw new RegraNegocioException("Você já tem uma conta com esse nome.");
         }
         conta.editar(req.nome(), req.tipo(), req.saldoInicial());
-        return paraResposta(conta, servicoFinanceiro.calcularResultadoPorConta(usuarioId).get(conta.getId()));
+        return paraResposta(conta, servicoFinanceiro.calcularResultadoPorConta(usuarioId).get(conta.getId()),
+                movimentacaoRepository.countByContaId(conta.getId()));
     }
 
     /** Exclui a conta e as movimentações registradas nela (o usuário confirma antes na interface). */
@@ -81,9 +84,17 @@ public class ContaFinanceiraService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Conta não encontrada."));
     }
 
-    private ContaResponse paraResposta(ContaFinanceira conta, BigDecimal resultadoMovimentacoes) {
-        long quantidade = conta.getId() == null ? 0 : movimentacaoRepository.countByContaId(conta.getId());
+    private ContaResponse paraResposta(ContaFinanceira conta, BigDecimal resultadoMovimentacoes, long quantidade) {
         return new ContaResponse(conta.getId(), conta.getNome(), conta.getTipo(), conta.getSaldoInicial(),
                 conta.calcularSaldo(resultadoMovimentacoes), quantidade);
+    }
+
+    /** Contagem por conta em uma única consulta (antes era um count por conta). */
+    private Map<UUID, Long> contarMovimentacoesPorConta(UUID usuarioId) {
+        Map<UUID, Long> quantidades = new HashMap<>();
+        for (Object[] linha : movimentacaoRepository.contarPorConta(usuarioId)) {
+            quantidades.put((UUID) linha[0], (Long) linha[1]);
+        }
+        return quantidades;
     }
 }

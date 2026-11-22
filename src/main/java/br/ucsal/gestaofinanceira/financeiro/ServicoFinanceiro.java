@@ -114,15 +114,16 @@ public class ServicoFinanceiro {
             porMes.put(primeiroMes.plusMonths(i), new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
         }
 
-        List<LancamentoResumido> lancamentos = movimentacaoRepository.listarLancamentosResumidos(
-                usuarioId, primeiroMes.atDay(1), ultimoMes.atEndOfMonth());
-        for (LancamentoResumido l : lancamentos) {
-            BigDecimal[] totais = porMes.get(YearMonth.from(l.data()));
+        // soma por mês é feita no banco; a consulta devolve no máximo 2 linhas por mês
+        for (Object[] linha : movimentacaoRepository.somarPorMesETipo(
+                usuarioId, primeiroMes.atDay(1), ultimoMes.atEndOfMonth())) {
+            YearMonth mes = YearMonth.of((Integer) linha[0], (Integer) linha[1]);
+            BigDecimal[] totais = porMes.get(mes);
             if (totais == null) {
                 continue;
             }
-            int indice = l.tipo() == TipoMovimentacao.RECEITA ? 0 : 1;
-            totais[indice] = totais[indice].add(l.valor());
+            int indice = linha[2] == TipoMovimentacao.RECEITA ? 0 : 1;
+            totais[indice] = totais[indice].add((BigDecimal) linha[3]);
         }
 
         List<ResumoMensal> resultado = new ArrayList<>();

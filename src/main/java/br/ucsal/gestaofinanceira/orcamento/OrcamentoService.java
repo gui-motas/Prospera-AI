@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /** Definição de limites de gastos e acompanhamento do orçamento pessoal (escopo 1.2, RN-005). */
@@ -37,10 +41,56 @@ public class OrcamentoService {
 
     @Transactional(readOnly = true)
     public List<OrcamentoResponse> listar() {
-        return orcamentoRepository.findByCategoriaUsuarioIdOrderByInicioPeriodoDesc(usuarioAutenticado.obterId())
-                .stream()
-                .map(this::paraResposta)
+        UUID usuarioId = usuarioAutenticado.obterId();
+        List<Orcamento> orcamentos = orcamentoRepository
+                .findByCategoriaUsuarioIdOrderByInicioPeriodoDesc(usuarioId);
+        if (orcamentos.isEmpty()) {
+            return List.of();
+        }
+
+        // Uma consulta agrupada por categoria e mês cobre todos os orçamentos, em vez de
+        // um "sum" por orçamento. Cada orçamento depois soma só os meses do seu período.
+        LocalDate inicio = orcamentos.stream().map(Orcamento::getInicioPeriodo).min(LocalDate::compareTo).orElseThrow();
+        LocalDate fim = orcamentos.stream().map(Orcamento::getFimPeriodo).max(LocalDate::compareTo).orElseThrow();
+        Map<UUID, Map<YearMonth, BigDecimal>> gastoPorCategoriaMes = new HashMap<>();
+        for (Object[] linha : movimentacaoRepository.somarPorCategoriaEMes(
+                usuarioId, TipoMovimentacao.DESPESA, inicio, fim)) {
+            YearMonth mes = YearMonth.of((Integer) linha[1], (Integer) linha[2]);
+            gastoPorCategoriaMes
+                    .computeIfAbsent((UUID) linha[0], k -> new HashMap<>())
+                    .merge(mes, (BigDecimal) linha[3], BigDecimal::add);
+        }
+
+        return orcamentos.stream()
+                .map(o -> {
+                    BigDecimal total = totalEmMesesCheios(gastoPorCategoriaMes, o);
+                    // períodos parciais (ex.: 10/01 a 20/01) precisam da consulta exata
+                    return paraResposta(o, total != null ? total : calcularTotalGasto(o));
+                })
                 .toList();
+    }
+
+    /** Soma os meses que caem dentro do período do orçamento; null quando o período não é composto de meses cheios. */
+    private static BigDecimal totalEmMesesCheios(Map<UUID, Map<YearMonth, BigDecimal>> gastos, Orcamento orcamento) {
+        boolean comecaNoPrimeiroDia = orcamento.getInicioPeriodo()
+                .equals(orcamento.getInicioPeriodo().withDayOfMonth(1));
+        boolean terminaNoUltimoDia = orcamento.getFimPeriodo()
+                .equals(YearMonth.from(orcamento.getFimPeriodo()).atEndOfMonth());
+        if (!comecaNoPrimeiroDia || !terminaNoUltimoDia) {
+            return null;
+        }
+        Map<YearMonth, BigDecimal> porMes = gastos.get(orcamento.getCategoria().getId());
+        if (porMes == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal total = BigDecimal.ZERO;
+        YearMonth atual = YearMonth.from(orcamento.getInicioPeriodo());
+        YearMonth ultimo = YearMonth.from(orcamento.getFimPeriodo());
+        while (!atual.isAfter(ultimo)) {
+            total = total.add(porMes.getOrDefault(atual, BigDecimal.ZERO));
+            atual = atual.plusMonths(1);
+        }
+        return total;
     }
 
     @Transactional
@@ -89,7 +139,10 @@ public class OrcamentoService {
     }
 
     private OrcamentoResponse paraResposta(Orcamento o) {
-        BigDecimal totalGasto = calcularTotalGasto(o);
+        return paraResposta(o, calcularTotalGasto(o));
+    }
+
+    private OrcamentoResponse paraResposta(Orcamento o, BigDecimal totalGasto) {
         return new OrcamentoResponse(o.getId(), o.getCategoria().getId(), o.getCategoria().getNome(), o.getLimite(),
                 o.getInicioPeriodo(), o.getFimPeriodo(), totalGasto, o.calcularSaldoRestante(totalGasto),
                 o.calcularPercentualUtilizado(totalGasto), o.avaliarSituacao(totalGasto));

@@ -1,7 +1,6 @@
 package br.ucsal.gestaofinanceira.movimentacao;
 
 import br.ucsal.gestaofinanceira.financeiro.GastoPorCategoria;
-import br.ucsal.gestaofinanceira.financeiro.LancamentoResumido;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -66,9 +65,28 @@ public interface MovimentacaoRepository extends JpaRepository<Movimentacao, UUID
                                           @Param("inicio") LocalDate inicio,
                                           @Param("fim") LocalDate fim);
 
-    @Query("select new br.ucsal.gestaofinanceira.financeiro.LancamentoResumido(m.data, m.tipo, m.valor) "
-            + "from Movimentacao m where m.conta.usuario.id = :usuarioId and m.data between :inicio and :fim")
-    List<LancamentoResumido> listarLancamentosResumidos(@Param("usuarioId") UUID usuarioId,
-                                                        @Param("inicio") LocalDate inicio,
-                                                        @Param("fim") LocalDate fim);
+    /**
+     * Receitas e despesas somadas por mês dentro do período, agrupadas no banco.
+     * Linhas: [ano (Integer), mes (Integer), tipo (TipoMovimentacao), soma (BigDecimal)].
+     */
+    @Query("select year(m.data), month(m.data), m.tipo, sum(m.valor) from Movimentacao m "
+            + "where m.conta.usuario.id = :usuarioId and m.data between :inicio and :fim "
+            + "group by year(m.data), month(m.data), m.tipo")
+    List<Object[]> somarPorMesETipo(@Param("usuarioId") UUID usuarioId,
+                                    @Param("inicio") LocalDate inicio,
+                                    @Param("fim") LocalDate fim);
+
+    /** Contagem de movimentações por conta do usuário, em uma consulta. */
+    @Query("select m.conta.id, count(m) from Movimentacao m where m.conta.usuario.id = :usuarioId "
+            + "group by m.conta.id")
+    List<Object[]> contarPorConta(@Param("usuarioId") UUID usuarioId);
+
+    /** Total gasto por categoria (despesa) e por mês, para todos os orçamentos de uma vez. */
+    @Query("select m.categoria.id, year(m.data), month(m.data), sum(m.valor) from Movimentacao m "
+            + "where m.conta.usuario.id = :usuarioId and m.tipo = :tipo "
+            + "and m.data between :inicio and :fim group by m.categoria.id, year(m.data), month(m.data)")
+    List<Object[]> somarPorCategoriaEMes(@Param("usuarioId") UUID usuarioId,
+                                         @Param("tipo") TipoMovimentacao tipo,
+                                         @Param("inicio") LocalDate inicio,
+                                         @Param("fim") LocalDate fim);
 }
