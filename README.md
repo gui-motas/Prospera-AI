@@ -130,7 +130,7 @@ Backend em `src/main/java/br/ucsal/gestaofinanceira/`; frontend em `frontend/src
 
 ## Tecnologias
 
-- **Backend:** Java 21, Spring Boot 3.4 (Web, Data JPA, Security, Validation, Mail, Actuator), PostgreSQL, springdoc-openapi (Swagger)
+- **Backend:** Java 21, Spring Boot 3.4 (Web, Data JPA, Security, Validation, Mail, Actuator), Flyway, PostgreSQL, springdoc-openapi (Swagger)
 - **Frontend:** React 19, TypeScript, Vite, React Router, TanStack Query, Axios, Recharts, react-hot-toast
 - **Infra:** Docker Compose (PostgreSQL + backend + frontend com Nginx)
 - **Testes:** JUnit 5 e Mockito (backend), Vitest (frontend)
@@ -215,9 +215,24 @@ Documentação completa e interativa no Swagger.
 ## Testes
 
 ```bash
-./mvnw test                 # regras de negócio (RegrasDeNegocioTest), IA (ServicoIATest) e contexto
+./mvnw test                 # regras de negócio, IA, segurança, agregações e contexto
 cd frontend && npm test     # utilitários de formatação e senha
 ```
+
+Os testes de integração usam H2 em memória. Para rodá-los contra um PostgreSQL real
+(mesmo banco das migrações do Flyway), suba um banco e ative o profile `postgres`:
+
+```bash
+docker run -d --name prospera-pg -e POSTGRES_PASSWORD=teste -e POSTGRES_DB=gestao_financeira -p 55433:5432 postgres:16-alpine
+./mvnw test -Dspring.profiles.active=postgres
+```
+
+## Banco de dados e migrações
+
+O schema é criado e versionado pelo **Flyway** (`src/main/resources/db/migration/`) e o Hibernate apenas
+valida as entidades contra o banco (`ddl-auto: validate`). Para mudar o schema, crie um novo arquivo
+`V2__descricao.sql`; nunca edite uma migração já aplicada. O baseline `V1__schema_inicial.sql` já inclui as
+constraints de nome único de conta e de categoria por usuário.
 
 ## Estrutura
 

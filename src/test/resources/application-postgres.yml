@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:55433/gestao_financeira
+    username: postgres
+    password: teste
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: false
+
+app:
+  url-frontend: http://localhost:5173
+  cors:
+    allowed-origins: http://localhost:*
+  cadastro:
+    confirmacao-email: false
+  email:
+    remetente: teste@teste.local
+  admin:
+    email: ""
+    senha: ""
+  ia:
+    provedor: anthropic
+    chave-api: ""

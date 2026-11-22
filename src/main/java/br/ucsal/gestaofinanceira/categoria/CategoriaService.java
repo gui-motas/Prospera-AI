@@ -9,6 +9,7 @@ import br.ucsal.gestaofinanceira.movimentacao.TipoMovimentacao;
 import br.ucsal.gestaofinanceira.orcamento.OrcamentoRepository;
 import br.ucsal.gestaofinanceira.seguranca.UsuarioAutenticado;
 import br.ucsal.gestaofinanceira.usuario.Usuario;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +55,12 @@ public class CategoriaService {
         if (categoriaRepository.existsByUsuarioIdAndNomeIgnoreCaseAndTipo(usuario.getId(), req.nome().trim(), req.tipo())) {
             throw new RegraNegocioException("Já existe uma categoria com esse nome e tipo.");
         }
-        return CategoriaResponse.de(categoriaRepository.save(new Categoria(usuario, req.nome(), req.tipo())));
+        try {
+            return CategoriaResponse.de(categoriaRepository.save(new Categoria(usuario, req.nome(), req.tipo())));
+        } catch (DataIntegrityViolationException e) {
+            // duas requisições iguais ao mesmo tempo: a constraint do banco decide, com a mesma mensagem
+            throw new RegraNegocioException("Já existe uma categoria com esse nome e tipo.");
+        }
     }
 
     @Transactional

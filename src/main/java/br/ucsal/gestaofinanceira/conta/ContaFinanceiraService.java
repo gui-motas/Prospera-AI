@@ -8,6 +8,7 @@ import br.ucsal.gestaofinanceira.financeiro.ServicoFinanceiro;
 import br.ucsal.gestaofinanceira.movimentacao.MovimentacaoRepository;
 import br.ucsal.gestaofinanceira.seguranca.UsuarioAutenticado;
 import br.ucsal.gestaofinanceira.usuario.Usuario;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,9 +53,14 @@ public class ContaFinanceiraService {
         if (contaRepository.existsByUsuarioIdAndNomeIgnoreCase(usuario.getId(), req.nome().trim())) {
             throw new RegraNegocioException("Você já tem uma conta com esse nome.");
         }
-        ContaFinanceira conta = contaRepository.save(
-                new ContaFinanceira(usuario, req.nome(), req.tipo(), req.saldoInicial()));
-        return paraResposta(conta, BigDecimal.ZERO, 0L);
+        try {
+            ContaFinanceira conta = contaRepository.save(
+                    new ContaFinanceira(usuario, req.nome(), req.tipo(), req.saldoInicial()));
+            return paraResposta(conta, BigDecimal.ZERO, 0L);
+        } catch (DataIntegrityViolationException e) {
+            // duas requisições iguais ao mesmo tempo: a constraint do banco decide
+            throw new RegraNegocioException("Você já tem uma conta com esse nome.");
+        }
     }
 
     @Transactional

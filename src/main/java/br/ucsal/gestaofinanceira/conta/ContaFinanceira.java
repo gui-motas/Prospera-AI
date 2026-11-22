@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -25,7 +26,8 @@ import java.util.UUID;
  * inicial e das movimentações registradas (RN-004, RN-012).</p>
  */
 @Entity
-@Table(name = "contas_financeiras")
+@Table(name = "contas_financeiras", uniqueConstraints = @UniqueConstraint(
+        name = "uk_contas_financeiras_usuario_nome", columnNames = {"usuario_id", "nome"}))
 public class ContaFinanceira {
 
     @Id

@@ -41,6 +41,7 @@ class AgregacoesFinanceirasTest {
     private Usuario usuario;
     private ContaFinanceira conta;
     private Categoria despesa;
+    private Categoria receita;
 
     @BeforeEach
     void preparar() {
@@ -50,12 +51,11 @@ class AgregacoesFinanceirasTest {
         usuarioRepository.save(usuario);
         conta = contaRepository.save(new ContaFinanceira(usuario, "Carteira", TipoConta.CARTEIRA, BigDecimal.ZERO));
         despesa = categoriaRepository.save(new Categoria(usuario, "Mercado", TipoMovimentacao.DESPESA));
+        receita = categoriaRepository.save(new Categoria(usuario, "Salário", TipoMovimentacao.RECEITA));
     }
 
     private void lancar(TipoMovimentacao tipo, String valor, LocalDate data) {
-        Categoria categoria = tipo == TipoMovimentacao.DESPESA
-                ? despesa
-                : categoriaRepository.save(new Categoria(usuario, "Salário", TipoMovimentacao.RECEITA));
+        Categoria categoria = tipo == TipoMovimentacao.DESPESA ? despesa : receita;
         movimentacaoRepository.save(new Movimentacao(conta, categoria, tipo, "lançamento",
                 new BigDecimal(valor), data));
     }

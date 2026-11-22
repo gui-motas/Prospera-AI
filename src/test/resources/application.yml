@@ -6,7 +6,11 @@ spring:
     password:
   jpa:
     hibernate:
+      # H2 em memoria, criado a partir das entidades: o Flyway roda em PostgreSQL
       ddl-auto: create-drop
+  flyway:
+    # as migrações são SQL de PostgreSQL; nos testes o schema vem do Hibernate
+    enabled: false
 
 app:
   url-frontend: http://localhost:5173

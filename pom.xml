@@ -52,6 +52,16 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Migrações de schema (o schema não é mais criado pelo Hibernate) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
         <!-- E-mail de confirmação de cadastro (opcional) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

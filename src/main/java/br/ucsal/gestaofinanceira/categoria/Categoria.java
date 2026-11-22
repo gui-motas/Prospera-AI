@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.util.UUID;
 
@@ -22,7 +23,8 @@ import java.util.UUID;
  * Atributos: id, nome, tipo. Operações: editar(), validarCompatibilidade(tipo).
  */
 @Entity
-@Table(name = "categorias")
+@Table(name = "categorias", uniqueConstraints = @UniqueConstraint(
+        name = "uk_categorias_usuario_nome_tipo", columnNames = {"usuario_id", "nome", "tipo"}))
 public class Categoria {
 
     @Id
