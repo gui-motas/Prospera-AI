@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -29,7 +30,10 @@ public interface MovimentacaoRepository extends JpaRepository<Movimentacao, UUID
 
     boolean existsByCategoriaIdAndTipoNot(UUID categoriaId, TipoMovimentacao tipo);
 
-    void deleteByContaId(UUID contaId);
+    /** delete em massa: o derivado deleteByContaId carrega uma entidade por linha. */
+    @Modifying
+    @Query("delete from Movimentacao m where m.conta.id = :contaId")
+    void deleteByContaId(@Param("contaId") UUID contaId);
 
     long countByContaId(UUID contaId);
 

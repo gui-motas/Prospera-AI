@@ -74,6 +74,19 @@ class ServicoIATest {
         verify(analiseRepository, never()).save(any());
     }
 
+    @Test
+    void limiteDiarioDeAnalisesEvitaChamadaPagaESemFim() {
+        ClienteFalso cliente = new ClienteFalso("Análise de teste");
+        ServicoIA servico = new ServicoIA(cliente, servicoFinanceiro, metaRepository, analiseRepository, new ObjectMapper());
+        when(analiseRepository.countByUsuarioIdAndDataGeracaoGreaterThanEqual(any(), any()))
+                .thenReturn((long) ServicoIA.MAX_ANALISES_POR_DIA);
+
+        assertThrows(LimiteDeAnaliseException.class, () -> servico.gerarAnalise(usuario));
+        // a API externa não é chamada e nada é gravado
+        assertEquals("", cliente.ultimaMensagem);
+        verify(analiseRepository, never()).save(any());
+    }
+
     /** Substitui a API externa e guarda a última mensagem enviada. */
     private static final class ClienteFalso implements ClienteIA {
         private final String resposta;

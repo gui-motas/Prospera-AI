@@ -11,7 +11,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { TextoMarkdown } from '../components/TextoMarkdown';
 import { useAcao } from '../hooks/useAcao';
 import { useAtualizarDados, useCategorias, useMetas, useStatusIA } from '../hooks/useDados';
-import { iaIndisponivel, mensagemDeErro } from '../services/api-client';
+import { iaIndisponivel, limiteDeAnaliseAtingido, mensagemDeErro } from '../services/api-client';
 import { metaService, planejamentoService } from '../services/servicos';
 import type { AnaliseFinanceira, CenarioFinanceiro, CenarioRequest, MetaFinanceira } from '../services/tipos';
 import { ROTULO_STATUS_META, ROTULO_TIPO_ANALISE, formatarData, formatarDataHora, formatarMoeda } from '../utils/formatacao';
@@ -41,6 +41,8 @@ export function PlanejamentoPage() {
   const tratarErroIA = (erro: unknown) => {
     if (iaIndisponivel(erro)) {
       setIaFalhou(true); // RNF-09: informa e mantém o restante da página funcionando
+    } else if (limiteDeAnaliseAtingido(erro)) {
+      toast.error(mensagemDeErro(erro), { id: 'limite-ia' });
     } else {
       toast.error(mensagemDeErro(erro));
     }

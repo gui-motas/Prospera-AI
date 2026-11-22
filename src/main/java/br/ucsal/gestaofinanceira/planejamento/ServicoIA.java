@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,6 +73,9 @@ public class ServicoIA {
 
     private static final int MAX_CATEGORIAS = 8;
 
+    /** Limite de análises com IA por usuário a cada 24h: cada chamada custa dinheiro. */
+    static final int MAX_ANALISES_POR_DIA = 20;
+
     private final ClienteIA clienteIA;
     private final ServicoFinanceiro servicoFinanceiro;
     private final MetaFinanceiraRepository metaRepository;
@@ -98,6 +102,7 @@ public class ServicoIA {
     public ResultadoAnalise gerarAnalise(Usuario usuario) {
         LocalDate hoje = LocalDate.now();
         Map<String, Object> dados = prepararDadosSituacao(usuario.getId(), hoje);
+        exigirLimiteDiario(usuario);
         String texto = consultarAPIExterna(PEDIDO_SITUACAO, dados);
         AnaliseFinanceira analise = analiseRepository.save(
                 new AnaliseFinanceira(usuario, TipoAnalise.SITUACAO_FINANCEIRA, null, null, texto));
@@ -108,6 +113,7 @@ public class ServicoIA {
     public ResultadoAnalise planejarMeta(Usuario usuario, MetaFinanceira meta) {
         LocalDate hoje = LocalDate.now();
         Map<String, Object> dados = prepararDadosMeta(usuario.getId(), meta, hoje);
+        exigirLimiteDiario(usuario);
         String texto = consultarAPIExterna(PEDIDO_META, dados);
         AnaliseFinanceira analise = analiseRepository.save(
                 new AnaliseFinanceira(usuario, TipoAnalise.PLANEJAMENTO_META, meta, null, texto));
@@ -118,10 +124,23 @@ public class ServicoIA {
     public ResultadoAnalise interpretarCenario(Usuario usuario, CenarioFinanceiro cenario) {
         LocalDate hoje = LocalDate.now();
         Map<String, Object> dados = prepararDadosCenario(usuario.getId(), cenario, hoje);
+        exigirLimiteDiario(usuario);
         String texto = consultarAPIExterna(PEDIDO_CENARIO, dados);
         AnaliseFinanceira analise = analiseRepository.save(
                 new AnaliseFinanceira(usuario, TipoAnalise.INTERPRETACAO_CENARIO, cenario.getMeta(), cenario, texto));
         return new ResultadoAnalise(analise, dados);
+    }
+
+    /**
+     * Cada análise é uma chamada paga à API externa. Sem este limite, um usuário autenticado
+     * (ou uma página recarregada em loop) gera chamadas e linhas sem fim.
+     */
+    private void exigirLimiteDiario(Usuario usuario) {
+        long feitas = analiseRepository.countByUsuarioIdAndDataGeracaoGreaterThanEqual(
+                usuario.getId(), LocalDateTime.now().minusDays(1));
+        if (feitas >= MAX_ANALISES_POR_DIA) {
+            throw new LimiteDeAnaliseException(MAX_ANALISES_POR_DIA);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -234,8 +253,7 @@ public class ServicoIA {
         if (!clienteIA.estaConfigurado()) {
             throw new IAIndisponivelException("API de IA não configurada.");
         }
-        String json;
-        try {
+        String json;        try {
             json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dados);
         } catch (JsonProcessingException e) {
             throw new IAIndisponivelException("Falha ao preparar os dados para a IA.", e);

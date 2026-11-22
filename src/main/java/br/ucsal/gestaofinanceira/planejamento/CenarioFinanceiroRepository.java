@@ -2,6 +2,9 @@ package br.ucsal.gestaofinanceira.planejamento;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,5 +18,8 @@ public interface CenarioFinanceiroRepository extends JpaRepository<CenarioFinanc
     @EntityGraph(attributePaths = "meta")
     Optional<CenarioFinanceiro> findByIdAndMetaUsuarioId(UUID id, UUID usuarioId);
 
-    void deleteByMetaId(UUID metaId);
+    /** delete em massa: o derivado deleteByMetaId carrega uma entidade por linha. */
+    @Modifying
+    @Query("delete from CenarioFinanceiro c where c.meta.id = :metaId")
+    void deleteByMetaId(@Param("metaId") UUID metaId);
 }

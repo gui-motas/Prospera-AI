@@ -1,6 +1,7 @@
 package br.ucsal.gestaofinanceira.comum;
 
 import br.ucsal.gestaofinanceira.planejamento.IAIndisponivelException;
+import br.ucsal.gestaofinanceira.planejamento.LimiteDeAnaliseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -72,6 +73,11 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
         corpo.put("erro", IAIndisponivelException.MENSAGEM_USUARIO);
         corpo.put("iaDisponivel", false);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(corpo);
+    }
+
+    @ExceptionHandler(LimiteDeAnaliseException.class)
+    public ResponseEntity<Map<String, Object>> limiteDeAnalise(LimiteDeAnaliseException ex) {
+        return resposta(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)

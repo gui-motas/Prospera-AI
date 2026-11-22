@@ -28,6 +28,11 @@ export function iaIndisponivel(erro: unknown): boolean {
   return axios.isAxiosError(erro) && erro.response?.status === 503;
 }
 
+/** Limite diário de análises com IA atingido (HTTP 429). */
+export function limiteDeAnaliseAtingido(erro: unknown): boolean {
+  return axios.isAxiosError(erro) && erro.response?.status === 429;
+}
+
 api.interceptors.response.use(
   (resposta) => resposta,
   (erro) => {
