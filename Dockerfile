@@ -2,6 +2,8 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS builder
 WORKDIR /workspace
 COPY pom.xml ./
+# Camada separada: sem isso, qualquer alteração em src rebaixa todas as dependências
+RUN mvn -B -DskipTests dependency:go-offline
 COPY src ./src
 RUN mvn -B -DskipTests package
 
