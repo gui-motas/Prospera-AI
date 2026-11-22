@@ -123,7 +123,8 @@ export function PerfilPage() {
         <p className="text-sm text-muted">
           Guardamos apenas o necessário para a plataforma funcionar: nome, e-mail, senha protegida por hash e os dados
           financeiros que você registra. Somente você acessa seus dados financeiros. No planejamento inteligente, a API de
-          IA recebe apenas valores consolidados — nunca seu nome, e-mail, senha ou a descrição das suas movimentações.
+          IA recebe apenas valores consolidados — nunca seu nome, e-mail, senha, a descrição das suas movimentações, o
+          nome das suas metas ou a descrição dos seus cenários.
         </p>
       </section>
     </div>

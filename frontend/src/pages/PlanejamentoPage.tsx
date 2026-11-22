@@ -234,7 +234,8 @@ function PainelAnalise({ analise, onFechar }: { analise: AnaliseFinanceira; onFe
         <details className="dados-enviados">
           <summary>Ver os dados enviados à IA</summary>
           <p className="text-xs text-muted">
-            Somente valores consolidados. Nome, e-mail, senha, descrições de movimentações e nomes de contas não são enviados.
+            Somente valores consolidados. Nome, e-mail, senha, descrições de movimentações, nomes de contas,
+            nomes de metas e descrições de cenários não são enviados.
           </p>
           <pre>{JSON.stringify(analise.dadosEnviados, null, 2)}</pre>
         </details>

@@ -3,16 +3,19 @@ package br.ucsal.gestaofinanceira.planejamento;
 import br.ucsal.gestaofinanceira.financeiro.ResumoFinanceiro.GastoCategoria;
 import br.ucsal.gestaofinanceira.financeiro.ResumoFinanceiro.ResumoMensal;
 import br.ucsal.gestaofinanceira.financeiro.ServicoFinanceiro;
+import br.ucsal.gestaofinanceira.meta.MetaFinanceira;
 import br.ucsal.gestaofinanceira.meta.MetaFinanceiraRepository;
 import br.ucsal.gestaofinanceira.planejamento.ia.ClienteIA;
 import br.ucsal.gestaofinanceira.planejamento.ia.ClienteIAIndisponivel;
 import br.ucsal.gestaofinanceira.usuario.PerfilUsuario;
 import br.ucsal.gestaofinanceira.usuario.Usuario;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,7 +54,7 @@ class ServicoIATest {
     @Test
     void rn009_dadosPessoaisNaoSaoEnviadosAIA() {
         ClienteFalso cliente = new ClienteFalso("Análise de teste");
-        ServicoIA servico = new ServicoIA(cliente, servicoFinanceiro, metaRepository, analiseRepository, new ObjectMapper());
+        ServicoIA servico = new ServicoIA(cliente, servicoFinanceiro, metaRepository, analiseRepository, mapeador());
 
         ResultadoAnalise resultado = servico.gerarAnalise(usuario);
 
@@ -65,9 +68,27 @@ class ServicoIATest {
     }
 
     @Test
+    void rn009_nomeDaMetaEDescricaoDoCenarioNaoSaoEnviados() {
+        ClienteFalso cliente = new ClienteFalso("Análise de teste");
+        ServicoIA servico = new ServicoIA(cliente, servicoFinanceiro, metaRepository, analiseRepository, mapeador());
+
+        MetaFinanceira meta = new MetaFinanceira(usuario, "Tratamento da minha filha",
+                new BigDecimal("10000"), LocalDate.now().plusMonths(10), LocalDate.now());
+        when(metaRepository.findByUsuarioIdOrderByPrazoAsc(any())).thenReturn(List.of(meta));
+
+        servico.gerarAnalise(usuario);
+        assertFalse(cliente.ultimaMensagem.contains("Tratamento da minha filha"));
+        assertTrue(cliente.ultimaMensagem.contains("Meta 1"));
+
+        CenarioFinanceiro cenario = new CenarioFinanceiro(meta, "Cortar o delivery", new BigDecimal("300"), LocalDate.now());
+        servico.interpretarCenario(usuario, cenario);
+        assertFalse(cliente.ultimaMensagem.contains("Cortar o delivery"));
+    }
+
+    @Test
     void rnf09_indisponibilidadeDaIAEhInformadaSemSalvarAnalise() {
         ServicoIA servico = new ServicoIA(new ClienteIAIndisponivel("sem chave"),
-                servicoFinanceiro, metaRepository, analiseRepository, new ObjectMapper());
+                servicoFinanceiro, metaRepository, analiseRepository, mapeador());
 
         assertFalse(servico.estaDisponivel());
         assertThrows(IAIndisponivelException.class, () -> servico.gerarAnalise(usuario));
@@ -77,7 +98,7 @@ class ServicoIATest {
     @Test
     void limiteDiarioDeAnalisesEvitaChamadaPagaESemFim() {
         ClienteFalso cliente = new ClienteFalso("Análise de teste");
-        ServicoIA servico = new ServicoIA(cliente, servicoFinanceiro, metaRepository, analiseRepository, new ObjectMapper());
+        ServicoIA servico = new ServicoIA(cliente, servicoFinanceiro, metaRepository, analiseRepository, mapeador());
         when(analiseRepository.countByUsuarioIdAndDataGeracaoGreaterThanEqual(any(), any()))
                 .thenReturn((long) ServicoIA.MAX_ANALISES_POR_DIA);
 
@@ -85,6 +106,11 @@ class ServicoIATest {
         // a API externa não é chamada e nada é gravado
         assertEquals("", cliente.ultimaMensagem);
         verify(analiseRepository, never()).save(any());
+    }
+
+    /** Igual ao ObjectMapper do Spring Boot: entende LocalDate nas comparações de cenário. */
+    private static ObjectMapper mapeador() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     /** Substitui a API externa e guarda a última mensagem enviada. */

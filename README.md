@@ -179,9 +179,10 @@ Variáveis do backend podem ser passadas pelo ambiente (veja `.env.example`), po
 | `IA_TIMEOUT_SEGUNDOS` | Tempo máximo de espera pela resposta (padrão 30) |
 
 **Dados enviados à IA (RN-009):** saldo total, capacidade mensal de economia, receitas e despesas por mês,
-gastos por categoria e dados das metas (nome, valores, prazo, progresso). **Nunca** são enviados nome,
-e-mail, senha, identificadores, descrições de movimentações ou nomes de contas. Na tela de Planejamento é
-possível ver exatamente o que foi enviado em cada análise.
+gastos por categoria e dados das metas (valores, prazo, progresso). As metas são identificadas apenas como
+"Meta 1", "Meta 2"… **Nunca** são enviados nome, e-mail, senha, identificadores, o nome das metas, descrições de
+movimentações, descrições de cenários ou nomes de contas. Na tela de Planejamento é possível ver exatamente o
+que foi enviado em cada análise.
 
 ## Primeiro acesso
 

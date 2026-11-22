@@ -53,7 +53,8 @@ public class ServicoIA {
             3. Seu papel é informativo e de apoio ao planejamento pessoal: não prometa resultados e não
                recomende produtos de investimento, instituições financeiras ou ativos específicos.
             4. Você não executa ações. Apresente sugestões que o próprio usuário pode decidir aplicar.
-            5. Não peça nem mencione dados pessoais.
+            5. Não peça nem mencione dados pessoais. As metas chegam identificadas apenas como
+               "Meta 1", "Meta 2" etc. (o nome real nunca é enviado): referencie-as por esse rótulo.
             """;
 
     static final String PEDIDO_SITUACAO = """
@@ -156,8 +157,9 @@ public class ServicoIA {
         dados.put("gastosPorCategoriaUltimos3Meses", gastosUltimosMeses(usuarioId, hoje));
 
         List<Map<String, Object>> metas = new ArrayList<>();
+        int indice = 0;
         for (MetaFinanceira meta : metaRepository.findByUsuarioIdOrderByPrazoAsc(usuarioId)) {
-            metas.add(resumoMeta(meta, hoje));
+            metas.add(resumoMeta(meta, indice++, hoje));
         }
         dados.put("metas", metas);
         return dados;
@@ -169,7 +171,7 @@ public class ServicoIA {
 
         Map<String, Object> dados = new LinkedHashMap<>();
         dados.put("dataReferencia", hoje.toString());
-        dados.put("meta", resumoMeta(meta, hoje));
+        dados.put("meta", resumoMeta(meta, 0, hoje));
         dados.put("capacidadeMensalEconomia", capacidade);
         dados.put("capacidadeAtualCobreValorMensalNecessario", capacidade.compareTo(necessario) >= 0);
         if (capacidade.signum() > 0) {
@@ -187,20 +189,23 @@ public class ServicoIA {
         ComparacaoCenario comparacao = cenario.compararComSituacaoAtual(capacidade, hoje);
 
         Map<String, Object> dadosCenario = new LinkedHashMap<>();
-        dadosCenario.put("descricao", cenario.getDescricao());
         dadosCenario.put("economiaMensalSimulada", cenario.getEconomiaMensalSimulada());
 
         Map<String, Object> dados = new LinkedHashMap<>();
         dados.put("dataReferencia", hoje.toString());
-        dados.put("meta", resumoMeta(cenario.getMeta(), hoje));
+        dados.put("meta", resumoMeta(cenario.getMeta(), 0, hoje));
         dados.put("cenario", dadosCenario);
         dados.put("comparacaoComSituacaoAtual", objectMapper.convertValue(comparacao, Map.class));
         return dados;
     }
 
-    private Map<String, Object> resumoMeta(MetaFinanceira meta, LocalDate hoje) {
+    /**
+     * RN-009: só números consolidados. O nome da meta é texto livre digitado pelo usuário
+     * (pode conter dado pessoal), então a IA recebe apenas a posição da meta na lista.
+     */
+    private Map<String, Object> resumoMeta(MetaFinanceira meta, int indice, LocalDate hoje) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("nome", meta.getNome());
+        m.put("meta", "Meta " + (indice + 1));
         m.put("valorDesejado", meta.getValorDesejado());
         m.put("valorAcumulado", meta.getValorAcumulado());
         m.put("valorRestante", meta.calcularValorRestante());
