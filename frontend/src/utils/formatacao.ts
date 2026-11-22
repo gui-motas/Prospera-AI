@@ -66,11 +66,6 @@ export const ICONE_TIPO_CONTA: Record<TipoConta, string> = {
   INVESTIMENTO: 'trending_up',
 };
 
-export const ROTULO_TIPO_MOVIMENTACAO: Record<TipoMovimentacao, string> = {
-  RECEITA: 'Receita',
-  DESPESA: 'Despesa',
-};
-
 export const ROTULO_STATUS_META: Record<StatusMeta, string> = {
   EM_ANDAMENTO: 'Em andamento',
   CONCLUIDA: 'Concluída',

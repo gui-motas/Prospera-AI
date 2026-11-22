@@ -1,6 +1,18 @@
-/* Reset mínimo; estilos globais em App.css e styles/ */
+/* Reset mínimo; o restante dos estilos globais fica em App.css e styles/ */
 html,
 body {
   margin: 0;
   padding: 0;
+}
+
+/* Estilo base do documento: um único lugar para fonte, fundo e cor do texto. */
+body {
+  font-family: var(--fonte);
+  background:
+    radial-gradient(circle at top, rgba(19, 214, 154, 0.14), transparent 30%),
+    linear-gradient(180deg, #040909 0%, var(--fundo) 100%);
+  color: var(--texto);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

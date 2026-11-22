@@ -21,12 +21,21 @@ describe('formatacao', () => {
 describe('senha', () => {
   it('segue a regra mínima do backend (8 caracteres, letras e números)', () => {
     expect(isPasswordValid('abc12345')).toBe(true);
+    // exatamente o que ValidadorSenha exige: só letras e números já basta
+    expect(isPasswordValid('senha12345')).toBe(true);
     expect(isPasswordValid('abcdefgh')).toBe(false);
     expect(isPasswordValid('1234567')).toBe(false);
+    expect(isPasswordValid('12345678')).toBe(false);
   });
 
   it('pontua a força da senha', () => {
     expect(getPasswordScore('')).toBe(0);
     expect(getPasswordScore('Abcdef12!')).toBe(4);
+  });
+
+  it('a pontuação é só um indicador: uma senha válida pode ter nota baixa', () => {
+    // este era o conflito: o medidor pedia símbolo e maiúscula, mas o backend aceita
+    expect(isPasswordValid('senha12345')).toBe(true);
+    expect(getPasswordScore('senha12345')).toBeLessThan(3);
   });
 });

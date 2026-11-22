@@ -4,4 +4,3 @@
  */
 export const APP_NOME = 'Prospera';
 export const APP_SUBTITULO = 'com ProsperAI';
-export const APP_NOME_COMPLETO = 'Prospera — Finanças com ProsperAI';

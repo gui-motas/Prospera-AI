@@ -88,17 +88,6 @@
 /* ---------- Base ---------- */
 * { box-sizing: border-box; }
 
-body {
-  font-family: var(--fonte);
-  background:
-    radial-gradient(circle at top, rgba(19, 214, 154, 0.14), transparent 30%),
-    linear-gradient(180deg, #040909 0%, var(--fundo) 100%);
-  color: var(--texto);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
 button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 h1, h2, h3 { line-height: 1.25; }
 a { color: var(--primaria-texto); }
@@ -263,6 +252,14 @@ a { color: var(--primaria-texto); }
 .valor-despesa { color: var(--texto-perigo); }
 .form-ajuda { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--texto-fraco); }
 .form-erro { margin: 0 0 0.75rem; font-size: 0.875rem; color: var(--texto-perigo); font-weight: 600; }
+
+/* Indicador de força da senha (só dica visual; a regra válida é a de utils/password.ts) */
+.forca-senha { margin-top: 0.75rem; }
+.forca-senha-barras { display: flex; gap: 4px; margin-bottom: 0.5rem; }
+.forca-senha-barra { flex: 1; height: 4px; border-radius: 2px; transition: background-color 0.3s ease; }
+.forca-senha-rotulo { margin: 0; font-size: 0.875rem; font-weight: 600; }
+.forca-senha-dicas { margin: 0.5rem 0 0; padding-left: 1rem; font-size: 0.75rem; color: var(--texto-fraco); }
+.forca-senha-dicas li { margin-bottom: 0.25rem; }
 
 .seletor-tipo { border: none; padding: 0; margin: 0 0 0.85rem; }
 .seletor-tipo-opcoes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
