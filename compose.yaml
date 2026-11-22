@@ -7,9 +7,12 @@ services:
     environment:
       POSTGRES_DB: gestao_financeira
       POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      # Sem valor padrão: um `docker compose up` sem .env falha em vez de subir com senha conhecida.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
     ports:
-      - "5432:5432"
+      # Só na máquina local: publicar em 0.0.0.0 deixaria o banco com todos os dados
+      # financeiros acessível na rede com a senha padrão.
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

@@ -43,7 +43,14 @@ public class AdministradorInicial implements ApplicationRunner {
         if (usuarioRepository.existsByEmailIgnoreCase(email.trim())) {
             return;
         }
-        ValidadorSenha.validar(senha);
+        try {
+            ValidadorSenha.validar(senha);
+        } catch (RuntimeException e) {
+            // erro de configuração não deve derrubar a aplicação: sem admin, o resto funciona
+            LOG.error("ADMIN_PASSWORD não atende à política de senha ({}). Administrador inicial não criado.",
+                    e.getMessage());
+            return;
+        }
         Usuario admin = new Usuario("Administrador", email, passwordEncoder.encode(senha), PerfilUsuario.ADMINISTRADOR);
         admin.ativar();
         usuarioRepository.save(admin);
