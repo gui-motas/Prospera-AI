@@ -83,10 +83,6 @@ public class ContaFinanceira {
         return id;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
     public String getNome() {
         return nome;
     }

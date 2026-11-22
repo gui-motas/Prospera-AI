@@ -97,10 +97,6 @@ public class Usuario implements UserDetails {
         this.bloqueado = bloqueado;
     }
 
-    public boolean isAdministrador() {
-        return perfil == PerfilUsuario.ADMINISTRADOR;
-    }
-
     // --- UserDetails (Spring Security) ---
 
     @Override

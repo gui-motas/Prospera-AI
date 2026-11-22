@@ -79,10 +79,6 @@ public class AnaliseFinanceira {
         return id;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
     public MetaFinanceira getMeta() {
         return meta;
     }

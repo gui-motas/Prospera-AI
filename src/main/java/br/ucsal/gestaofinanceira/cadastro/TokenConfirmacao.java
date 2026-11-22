@@ -61,12 +61,4 @@ public class TokenConfirmacao {
         this.confirmadoEm = agora;
         usuario.ativar();
     }
-
-    public String getToken() {
-        return token;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
 }
