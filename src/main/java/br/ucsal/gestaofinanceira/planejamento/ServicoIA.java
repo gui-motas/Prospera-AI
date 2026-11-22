@@ -191,7 +191,7 @@ public class ServicoIA {
         m.put("progressoPercentual", meta.calcularProgresso());
         m.put("progressoEsperadoPercentual", meta.calcularProgressoEsperado(hoje));
         m.put("noRitmo", meta.estaNoRitmo(hoje));
-        m.put("status", meta.getStatus().name());
+        m.put("status", meta.statusEm(hoje).name());
         return m;
     }
 

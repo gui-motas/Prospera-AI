@@ -100,6 +100,18 @@ class RegrasDeNegocioTest {
     }
 
     @Test
+    void rf09_statusEmCalculaSemAlterarAMeta() {
+        MetaFinanceira meta = new MetaFinanceira(usuario, "Curso", new BigDecimal("1000"), HOJE.plusMonths(2), HOJE);
+
+        // depois do prazo, a consulta vê ATRASADA mas a entidade não é alterada
+        assertEquals(StatusMeta.ATRASADA, meta.statusEm(HOJE.plusMonths(3)));
+        assertEquals(StatusMeta.EM_ANDAMENTO, meta.getStatus());
+
+        meta.atualizarValorAcumulado(new BigDecimal("1000"), HOJE);
+        assertEquals(StatusMeta.CONCLUIDA, meta.statusEm(HOJE.plusMonths(3)));
+    }
+
+    @Test
     void cenarioProjetaPrazoEComparaComSituacaoAtual() {
         MetaFinanceira meta = new MetaFinanceira(usuario, "Viagem", new BigDecimal("6000"), HOJE.plusMonths(12), HOJE);
         CenarioFinanceiro cenario = new CenarioFinanceiro(meta, "Guardar R$ 1.000 por mês", new BigDecimal("1000"), HOJE);

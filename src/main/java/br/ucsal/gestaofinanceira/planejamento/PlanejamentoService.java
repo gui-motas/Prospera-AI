@@ -79,9 +79,9 @@ public class PlanejamentoService {
 
         List<ViabilidadeMeta> metas = new ArrayList<>();
         for (MetaFinanceira meta : metaRepository.findByUsuarioIdOrderByPrazoAsc(usuarioId)) {
-            meta.atualizarStatus(hoje);
+            StatusMeta status = meta.statusEm(hoje);
             BigDecimal necessario = meta.calcularValorMensalNecessario(hoje);
-            boolean concluida = meta.getStatus() == StatusMeta.CONCLUIDA;
+            boolean concluida = status == StatusMeta.CONCLUIDA;
             Long meses = null;
             LocalDate projetado = null;
             if (!concluida && capacidade.signum() > 0) {
@@ -89,8 +89,8 @@ public class PlanejamentoService {
                 projetado = hoje.plusMonths(meses);
             }
             boolean viavel = concluida
-                    || (meta.getStatus() == StatusMeta.EM_ANDAMENTO && capacidade.compareTo(necessario) >= 0);
-            metas.add(new ViabilidadeMeta(meta.getId(), meta.getNome(), meta.getStatus(), meta.getPrazo(),
+                    || (status == StatusMeta.EM_ANDAMENTO && capacidade.compareTo(necessario) >= 0);
+            metas.add(new ViabilidadeMeta(meta.getId(), meta.getNome(), status, meta.getPrazo(),
                     meta.calcularValorRestante(), necessario, meta.calcularMesesRestantes(hoje),
                     viavel, meses, projetado));
         }
@@ -108,8 +108,8 @@ public class PlanejamentoService {
 
     public AnaliseResponse analisarMeta(UUID metaId) {
         Usuario usuario = usuarioAutenticado.obter();
+        // Não abre transação: a meta é lida e enviada à IA sem gravar nada (RN-011)
         MetaFinanceira meta = metaService.buscarDoUsuario(metaId, usuario.getId());
-        meta.atualizarStatus(LocalDate.now());
         ResultadoAnalise resultado = servicoIA.planejarMeta(usuario, meta);
         return AnaliseResponse.de(resultado.analise(), resultado.dadosEnviados());
     }
@@ -135,8 +135,7 @@ public class PlanejamentoService {
         UUID usuarioId = usuarioAutenticado.obterId();
         LocalDate hoje = LocalDate.now();
         MetaFinanceira meta = metaService.buscarDoUsuario(metaId, usuarioId);
-        meta.atualizarStatus(hoje);
-        if (meta.getStatus() == StatusMeta.CONCLUIDA) {
+        if (meta.statusEm(hoje) == StatusMeta.CONCLUIDA) {
             throw new RegraNegocioException("Esta meta já foi concluída.");
         }
 

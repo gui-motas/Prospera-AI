@@ -147,14 +147,16 @@ public class MetaFinanceira {
         return calcularProgresso().add(TOLERANCIA_RITMO).compareTo(calcularProgressoEsperado(hoje)) >= 0;
     }
 
-    public void atualizarStatus(LocalDate hoje) {
+    /** Situação da meta na data informada, sem alterar a entidade (uso em consultas). */
+    public StatusMeta statusEm(LocalDate hoje) {
         if (valorAcumulado.compareTo(valorDesejado) >= 0) {
-            status = StatusMeta.CONCLUIDA;
-        } else if (hoje.isAfter(prazo)) {
-            status = StatusMeta.ATRASADA;
-        } else {
-            status = StatusMeta.EM_ANDAMENTO;
+            return StatusMeta.CONCLUIDA;
         }
+        return hoje.isAfter(prazo) ? StatusMeta.ATRASADA : StatusMeta.EM_ANDAMENTO;
+    }
+
+    public void atualizarStatus(LocalDate hoje) {
+        this.status = statusEm(hoje);
     }
 
     public UUID getId() {
