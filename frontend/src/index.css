@@ -1,0 +1,6 @@
+/* Reset mínimo; estilos globais em App.css e styles/ */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}

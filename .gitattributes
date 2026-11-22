@@ -1,0 +1,7 @@
+/mvnw text eol=lf
+*.cmd text eol=crlf
+# Estes arquivos sao executados em Linux (Docker, Make, shell)
+mvnw text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
+*.sh text eol=lf

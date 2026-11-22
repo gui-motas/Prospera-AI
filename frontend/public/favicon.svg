@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Prospera logo">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9cff5d"/>
+      <stop offset="35%" stop-color="#29d795"/>
+      <stop offset="68%" stop-color="#1cc2d8"/>
+      <stop offset="100%" stop-color="#0aa1eb"/>
+    </linearGradient>
+    <linearGradient id="shineGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="30" fill="#050b0b"/>
+
+  <path d="M34 94V31h32c25 0 39 16 39 34 0 21-16 33-39 33H34zm17-15h13c12 0 20-7 20-18 0-11-8-18-20-18H51v36z" fill="url(#bgGrad)"/>
+
+  <path d="M67 37h28c14 0 23 9 23 22 0 13-9 22-23 22H67V37zm17 15v15h8c5 0 8-3 8-8 0-5-3-7-8-7h-8z" fill="#0b1d1b" opacity="0.4"/>
+
+  <rect x="56" y="47" width="7" height="27" rx="2" fill="#0b1d1b" opacity="0.2"/>
+  <rect x="69" y="47" width="7" height="27" rx="2" fill="#0b1d1b" opacity="0.2"/>
+  <rect x="82" y="47" width="7" height="27" rx="2" fill="#0b1d1b" opacity="0.2"/>
+
+  <path d="M72 58c18 0 30 8 41 23l-11 8c-8-11-16-17-30-17v-14z" fill="url(#bgGrad)"/>
+
+  <path d="M83 52l19 28 11-9-19-28-11 9z" fill="#fff" opacity="0.96"/>
+
+  <path d="M28 92c16-8 27-9 42-6 9 2 17 5 22 9-10 9-28 18-50 14-9-2-17-9-14-17z" fill="url(#shineGrad)" opacity="0.7"/>
+</svg>
+

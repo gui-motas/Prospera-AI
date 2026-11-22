@@ -1,0 +1,169 @@
+/* =========================================================
+   Painel financeiro (RF-007) – mantém a identidade visual original:
+   card de saldo com gradiente azul e roxo, ações circulares, cartões de conta
+   escuros/gradiente, metas com barra de progresso e lista de atividades.
+   ========================================================= */
+
+.painel-grid { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+.painel-coluna-principal, .painel-coluna-lateral { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+@media (min-width: 1100px) {
+  .painel-grid { grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); align-items: start; }
+}
+
+/* ---------- Saldo ---------- */
+.cartao-hero { padding: 0; overflow: hidden; }
+.gradiente-saldo {
+  padding: 1.75rem 1rem 2rem;
+  text-align: center;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(19, 127, 236, 0.16) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.16) 0%, transparent 50%);
+}
+.hero-rotulo { margin: 0 0 0.25rem; font-size: 0.875rem; font-weight: 600; color: var(--texto-fraco); }
+.hero-saldo { margin: 0 0 1.75rem; font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; }
+.hero-saldo.negativo { color: var(--texto-perigo); }
+
+.hero-actions-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+  max-width: 24rem; margin: 0 auto;
+}
+.hero-acao { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; font-size: 0.78rem; font-weight: 700; }
+.action-btn-circle {
+  width: 3.5rem; height: 3.5rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 1rem; cursor: pointer;
+  box-shadow: var(--sombra);
+  transition: transform 0.1s ease;
+}
+.action-btn-circle:active { transform: scale(0.95); }
+.btn-primary-solid { background: var(--primaria); color: #fff; box-shadow: 0 10px 15px -3px rgba(19, 127, 236, 0.3); }
+.btn-surface { background: var(--superficie); color: var(--texto); border: 1px solid var(--borda); }
+
+/* ---------- Seletor de mês e indicadores ---------- */
+.seletor-mes { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem; }
+.seletor-mes-titulo { margin: 0; min-width: 11rem; text-align: center; font-size: 1.05rem; font-weight: 800; }
+.seletor-mes-titulo::first-letter { text-transform: uppercase; }
+
+.indicadores {
+  display: grid; gap: 0.75rem; margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.indicador {
+  padding: 0.85rem 1rem;
+  border-radius: var(--raio);
+  background: var(--superficie-2);
+}
+.indicador dt { font-size: 0.78rem; font-weight: 700; color: var(--texto-fraco); }
+.indicador dd { margin: 0.2rem 0 0; font-size: 1.15rem; font-weight: 800; }
+
+.lista-alertas { list-style: none; margin: 0 0 0.5rem; padding: 0; }
+
+/* ---------- Cartões de conta ---------- */
+.secao { min-width: 0; }
+.accounts-slider {
+  display: flex; gap: 1rem;
+  overflow-x: auto; scrollbar-width: thin;
+  padding-bottom: 0.5rem;
+}
+.account-card {
+  position: relative; overflow: hidden;
+  min-width: 240px; min-height: 8.5rem;
+  padding: 1.15rem;
+  border-radius: var(--raio);
+  display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;
+  color: #fff;
+  box-shadow: var(--sombra);
+}
+.card-dark { background: var(--card-escuro); }
+.card-gradient { background: linear-gradient(to bottom right, #4f46e5, #0f6fd1); }
+.account-card-icone { position: absolute; top: 0.75rem; right: 0.75rem; opacity: 0.18; }
+.account-card-nome { margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.account-card-saldo { margin: 0.25rem 0 0; font-size: 1.35rem; font-weight: 800; }
+.account-card-detalhe { margin: 0.35rem 0 0; font-size: 0.78rem; opacity: 0.85; }
+.account-card-tipo { align-self: flex-start; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 0.375rem; background: rgba(255, 255, 255, 0.14); }
+.account-card-rodape { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.account-card-grande { min-height: 10rem; }
+.grade-contas { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+/* ---------- Metas ---------- */
+.lista-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+.goal-card { padding: 1rem; border-radius: var(--raio); border: 1px solid var(--borda); background: var(--superficie); }
+.goal-card-topo { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; }
+.goal-icone {
+  width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 0.6rem;
+  background: rgba(168, 85, 247, 0.12); color: #9333ea;
+}
+[data-theme='dark'] .goal-icone { color: #c084fc; }
+.goal-nome { margin: 0; font-size: 0.95rem; font-weight: 800; }
+.goal-detalhe { margin: 0.1rem 0 0; font-size: 0.75rem; color: var(--texto-fraco); }
+.goal-percentual { font-size: 0.85rem; font-weight: 800; color: var(--primaria-texto); }
+.goal-ritmo { display: flex; align-items: center; gap: 0.35rem; margin: 0.6rem 0 0; font-size: 0.8rem; font-weight: 700; }
+.goal-ritmo .material-symbols-outlined { font-size: 1.1rem; }
+.goal-ritmo.ok { color: var(--texto-sucesso); }
+.goal-ritmo.atencao { color: var(--texto-alerta); }
+
+.barra-progresso {
+  position: relative;
+  height: 0.6rem; border-radius: 999px;
+  background: var(--superficie-2);
+  overflow: visible;
+}
+.barra-progresso-preenchimento { height: 100%; border-radius: 999px; transition: width 0.5s ease-out; }
+.barra-primaria { background: var(--destaque); }
+.barra-sucesso { background: var(--sucesso); }
+.barra-alerta { background: var(--alerta); }
+.barra-perigo { background: var(--perigo); }
+.barra-progresso-marcador {
+  position: absolute; top: -0.25rem;
+  width: 2px; height: 1.1rem;
+  background: var(--texto-suave);
+  border-radius: 2px;
+  transform: translateX(-1px);
+}
+
+/* ---------- Atividades ---------- */
+.lista-movimentacoes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.list-item {
+  display: flex; align-items: center; gap: 0.85rem;
+  width: 100%;
+  padding: 0.65rem 0;
+  border: none; background: none; text-align: left;
+}
+.list-item-botao { cursor: pointer; border-radius: var(--raio); padding: 0.65rem 0.5rem; }
+.list-item-botao:hover { background: var(--superficie-2); }
+.icon-circle {
+  width: 2.6rem; height: 2.6rem; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+}
+.bg-slate-soft { background: var(--superficie-2); color: var(--texto-suave); }
+.icon-receita { background: var(--sucesso-fundo); color: var(--texto-sucesso); }
+.list-item-texto { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.list-item-titulo { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-item-sub { font-size: 0.75rem; color: var(--texto-fraco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-item-valor { font-size: 0.9rem; white-space: nowrap; }
+
+/* ---------- Gráficos ---------- */
+.grafico-area { width: 100%; height: 260px; }
+.grafico-categorias { display: grid; gap: 1rem; grid-template-columns: 1fr; align-items: center; }
+.grafico-rosca { height: 220px; }
+@media (min-width: 700px) { .grafico-categorias { grid-template-columns: 220px 1fr; } }
+.legenda-categorias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.legenda-categorias li { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 0.6rem; font-size: 0.875rem; }
+.legenda-cor { width: 0.75rem; height: 0.75rem; border-radius: 3px; }
+.legenda-nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legenda-valor { font-weight: 700; }
+.legenda-percentual { color: var(--texto-fraco); min-width: 3.25rem; text-align: right; }
+
+/* ---------- Atalho para o planejamento ---------- */
+.cartao-ia { display: flex; gap: 1rem; background: linear-gradient(135deg, var(--primaria-suave), rgba(168, 85, 247, 0.1)); }
+.cartao-ia .secao-titulo { margin-bottom: 0.25rem; }
+.cartao-ia p { margin: 0 0 0.75rem; }
+.cartao-ia-icone {
+  width: 2.75rem; height: 2.75rem; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 0.75rem; color: #fff;
+  background: linear-gradient(135deg, var(--destaque), var(--roxo));
+}

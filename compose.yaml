@@ -1,0 +1,68 @@
+# Plataforma de Gestão Financeira Pessoal com Planejamento Inteligente de Metas
+# Uso: copie .env.example para .env, ajuste os valores e rode `docker compose up -d --build`.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gfp-postgres
+    environment:
+      POSTGRES_DB: gestao_financeira
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d gestao_financeira"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gfp-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gestao_financeira
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:*,http://127.0.0.1:*}
+      APP_CONFIRMACAO_EMAIL: ${APP_CONFIRMACAO_EMAIL:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      IA_PROVEDOR: ${IA_PROVEDOR:-anthropic}
+      IA_CHAVE_API: ${IA_CHAVE_API:-}
+      IA_MODELO: ${IA_MODELO:-}
+      IA_URL_BASE: ${IA_URL_BASE:-}
+      IA_TIMEOUT_SEGUNDOS: ${IA_TIMEOUT_SEGUNDOS:-30}
+      # SMTP: só é usado quando APP_CONFIRMACAO_EMAIL=true
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:-true}
+      MAIL_FROM: ${MAIL_FROM:-nao-responda@gestaofinanceira.local}
+    ports:
+      - "8090:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gfp-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

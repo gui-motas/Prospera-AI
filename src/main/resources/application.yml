@@ -1,0 +1,66 @@
+server:
+  port: ${PORT:8090}
+  servlet:
+    session:
+      timeout: 7d
+      cookie:
+        http-only: true
+        # lax = frontend e API na mesma origem (padrão). Para origens diferentes (ex.: Render), use none + secure true.
+        same-site: ${APP_COOKIE_SAMESITE:lax}
+        secure: ${APP_COOKIE_SECURE:false}
+
+spring:
+  application:
+    name: gestao-financeira-pessoal
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gestao_financeira}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  # SMTP só é necessário se APP_CONFIRMACAO_EMAIL=true.
+  # Configure pelas variáveis SPRING_MAIL_HOST, SPRING_MAIL_PORT,
+  # SPRING_MAIL_USERNAME e SPRING_MAIL_PASSWORD (nunca coloque senhas neste arquivo).
+
+app:
+  # URL do frontend, usada no link de confirmação de cadastro
+  url-frontend: ${APP_FRONTEND_URL:http://localhost:5173}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
+  cadastro:
+    # true = o usuário precisa confirmar o e-mail antes de entrar (RF-001)
+    confirmacao-email: ${APP_CONFIRMACAO_EMAIL:false}
+  email:
+    remetente: ${MAIL_FROM:nao-responda@gestaofinanceira.local}
+  # Administrador inicial (perfil Administrador). Criado na inicialização se ainda não existir.
+  admin:
+    email: ${ADMIN_EMAIL:}
+    senha: ${ADMIN_PASSWORD:}
+  # API externa de Inteligência Artificial (RF-010). Sem chave, o recurso inteligente
+  # fica indisponível e o restante da plataforma continua funcionando (RNF-09).
+  ia:
+    provedor: ${IA_PROVEDOR:anthropic}        # anthropic | openai (qualquer API compatível com OpenAI)
+    chave-api: ${IA_CHAVE_API:}
+    modelo: ${IA_MODELO:}
+    url-base: ${IA_URL_BASE:}
+    timeout-segundos: ${IA_TIMEOUT_SEGUNDOS:30}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    mail:
+      enabled: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
