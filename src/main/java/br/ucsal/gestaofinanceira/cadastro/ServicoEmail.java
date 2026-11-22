@@ -6,11 +6,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Envia o e-mail de confirmação de cadastro. Se o SMTP não estiver configurado
@@ -30,7 +35,24 @@ public class ServicoEmail {
         this.remetente = remetente;
     }
 
-    @Async
+    /**
+     * Executor dedicado: sem ele, o @Async usa SimpleAsyncTaskExecutor, que abre uma
+     * thread nova por cadastro, sem teto. Com a fila cheia, o envio roda na própria
+     * thread do cadastro em vez de estourar o número de threads.
+     */
+    @Bean
+    public Executor executorEmail() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(200);
+        executor.setThreadNamePrefix("email-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    @Async("executorEmail")
     public void enviarConfirmacao(String destinatario, String nome, String link) {
         JavaMailSender sender = mailSender.getIfAvailable();
         if (sender == null) {

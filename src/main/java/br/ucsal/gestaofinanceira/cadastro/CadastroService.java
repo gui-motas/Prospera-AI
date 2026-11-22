@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -78,8 +80,23 @@ public class CadastroService {
         LocalDateTime agora = LocalDateTime.now();
         String token = UUID.randomUUID().toString();
         tokenRepository.save(new TokenConfirmacao(token, usuario, agora, agora.plusHours(HORAS_VALIDADE_TOKEN)));
-        servicoEmail.enviarConfirmacao(email, usuario.getNome(), urlFrontend + "/confirmar-conta?token=" + token);
+        // Só envia depois do commit: antes, o e-mail podia chegar com o token ainda invisível
+        // para outra conexão, e um rollback deixava um link morto na caixa do usuário.
+        enviarAposCommit(email, usuario.getNome(), urlFrontend + "/confirmar-conta?token=" + token);
         return new CadastroResponse("Cadastro realizado! Enviamos um link de confirmação para o seu e-mail.", true);
+    }
+
+    private void enviarAposCommit(String email, String nome, String link) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    servicoEmail.enviarConfirmacao(email, nome, link);
+                }
+            });
+        } else {
+            servicoEmail.enviarConfirmacao(email, nome, link);
+        }
     }
 
     @Transactional
