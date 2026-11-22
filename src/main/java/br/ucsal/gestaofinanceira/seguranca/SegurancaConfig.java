@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,10 +35,19 @@ public class SegurancaConfig {
     @Value("${app.cors.allowed-origins}")
     private String origensPermitidas;
 
+    private final ContadorTentativasLogin tentativasLogin;
+
+    public SegurancaConfig(ContadorTentativasLogin tentativasLogin) {
+        this.tentativasLogin = tentativasLogin;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // antes do filtro de autenticação: evita BCrypt em e-mails já bloqueados
+                .addFilterBefore(new FiltroTentativasLogin(tentativasLogin),
+                        UsernamePasswordAuthenticationFilter.class)
                 // API JSON consumida por SPA com cookie de sessão: o CSRF é barrado pelo CORS
                 // (origens exatas), não por token. Nunca libere origem curinga com credenciais.
                 .csrf(AbstractHttpConfigurer::disable)
@@ -59,8 +69,12 @@ public class SegurancaConfig {
                         .loginProcessingUrl("/api/v1/login")
                         .usernameParameter("username")
                         .passwordParameter("password")
-                        .successHandler((req, res, auth) -> res.setStatus(HttpStatus.OK.value()))
+                        .successHandler((req, res, auth) -> {
+                            tentativasLogin.registrarSucesso(auth.getName());
+                            res.setStatus(HttpStatus.OK.value());
+                        })
                         .failureHandler((req, res, e) -> {
+                            tentativasLogin.registrarFalha(req.getParameter("username"));
                             String mensagem;
                             if (e instanceof LockedException) {
                                 mensagem = "Conta bloqueada pelo administrador.";

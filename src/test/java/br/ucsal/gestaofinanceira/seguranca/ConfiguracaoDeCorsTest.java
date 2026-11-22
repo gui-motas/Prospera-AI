@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ConfiguracaoDeCorsTest {
 
     private static SegurancaConfig comOrigens(String origens) {
-        SegurancaConfig config = new SegurancaConfig();
+        SegurancaConfig config = new SegurancaConfig(new ContadorTentativasLogin());
         ReflectionTestUtils.setField(config, "origensPermitidas", origens);
         return config;
     }
