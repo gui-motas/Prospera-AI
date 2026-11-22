@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { EstadoVazio, ErroCarregamento, PageHeader } from '../components/Comuns';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { Icone } from '../components/Icone';
@@ -22,6 +22,13 @@ export function MovimentacoesPage() {
   const [nova, setNova] = useState<TipoMovimentacao | null>(null);
   const [editando, setEditando] = useState<Movimentacao | null>(null);
   const [excluindo, setExcluindo] = useState<Movimentacao | null>(null);
+
+  // O texto digitado só entra no filtro depois de uma pausa; antes, cada tecla virava uma requisição.
+  const [textoDigitado, setTextoDigitado] = useState(filtros.texto ?? '');
+  useEffect(() => {
+    const timer = setTimeout(() => setFiltros((f) => ({ ...f, texto: textoDigitado || undefined })), 300);
+    return () => clearTimeout(timer);
+  }, [textoDigitado]);
 
   const { data: categorias = [] } = useCategorias();
   const { data: contas = [] } = useContas();
@@ -92,11 +99,11 @@ export function MovimentacoesPage() {
         </div>
         <div className="form-group filtros-busca">
           <label className="form-label" htmlFor={`${id}-texto`}>Descrição</label>
-          <input id={`${id}-texto`} type="search" className="form-control" placeholder="Buscar…" value={filtros.texto ?? ''}
-            onChange={(e) => alterar('texto', e.target.value)} />
+          <input id={`${id}-texto`} type="search" className="form-control" placeholder="Buscar…" value={textoDigitado}
+            onChange={(e) => setTextoDigitado(e.target.value)} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm filtros-limpar"
-          onClick={() => setFiltros({ dataInicio: mesAtual.inicio, dataFim: mesAtual.fim })}>
+          onClick={() => { setTextoDigitado(''); setFiltros({ dataInicio: mesAtual.inicio, dataFim: mesAtual.fim }); }}>
           Limpar filtros
         </button>
       </form>
