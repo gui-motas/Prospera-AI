@@ -38,7 +38,8 @@ public class SegurancaConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // API consumida por SPA com cookie de sessão SameSite=Lax
+                // API JSON consumida por SPA com cookie de sessão: o CSRF é barrado pelo CORS
+                // (origens exatas), não por token. Nunca libere origem curinga com credenciais.
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -91,6 +92,15 @@ public class SegurancaConfig {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
+
+        // Origem curinga com credenciais deixaria qualquer site chamar a API com o cookie do usuário
+        // (o CSRF está desligado), então a aplicação recusa subir nessa configuração.
+        boolean curinga = origens.stream().anyMatch(o -> o.equals("*") || o.endsWith("://*"));
+        if (curinga) {
+            throw new IllegalStateException(
+                    "APP_CORS_ALLOWED_ORIGINS não pode conter origem curinga (*): liste as origens exatas "
+                            + "do frontend. Com cookie de sessão, curinga permitiria CSRF.");
+        }
 
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(origens);

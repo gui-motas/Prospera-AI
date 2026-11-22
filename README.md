@@ -242,5 +242,8 @@ cd frontend && npm test     # utilitários de formatação e senha
 
 - Nenhuma credencial fica no código: tudo vem de variáveis de ambiente (`.env` não é versionado).
 - Senhas armazenadas apenas como hash BCrypt.
-- Cookie de sessão `HttpOnly` e `SameSite=Lax` (frontend e API na mesma origem). Para hospedar em domínios
-  diferentes, use `APP_COOKIE_SAMESITE=none` e `APP_COOKIE_SECURE=true` (veja `render.env`).
+- Cookie de sessão `HttpOnly`. Mantenha frontend e API na mesma origem (`SameSite=Lax`); assim o navegador
+  não envia o cookie em requisições vindas de outro site. Se precisar de domínios diferentes
+  (`APP_COOKIE_SAMESITE=none` + `APP_COOKIE_SECURE=true`, veja `render.env`), a única barreira passa a ser
+  o CORS: `APP_CORS_ALLOWED_ORIGINS` deve listar as origens exatas (o backend recusa subir com `*`).
+- A API não usa token CSRF (é JSON, consumida por SPA); a proteção é o filtro de CORS acima.
